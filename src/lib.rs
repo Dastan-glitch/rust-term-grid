@@ -106,6 +106,9 @@ use std::cmp::max;
 use std::fmt;
 use std::iter::repeat;
 
+extern crate colored;
+use colored::{ColoredString, Colorize};
+
 extern crate unicode_width;
 use unicode_width::UnicodeWidthStr;
 
@@ -132,7 +135,7 @@ pub enum Alignment {
 pub struct Cell {
 
     /// The string to display when this cell gets rendered.
-    pub contents: String,
+    pub contents: ColoredString,
 
     /// The pre-computed length of the string.
     pub width: Width,
@@ -143,6 +146,16 @@ pub struct Cell {
 
 impl From<String> for Cell {
     fn from(string: String) -> Self {
+        Self {
+            width: UnicodeWidthStr::width(&*string),
+            contents: string.normal(),
+            alignment: Alignment::Left,
+        }
+    }
+}
+
+impl From<ColoredString> for Cell {
+    fn from(string: ColoredString) -> Self {
         Self {
             width: UnicodeWidthStr::width(&*string),
             contents: string,
@@ -513,14 +526,14 @@ impl fmt::Display for Display<'_> {
 
 /// Pad a string with the given number of spaces.
 fn spaces(length: usize) -> String {
-    repeat(" ").take(length).collect()
+    " ".repeat(length)
 }
 
 /// Pad a string with the given alignment and number of spaces.
 ///
 /// This doesn’t take the width the string *should* be, rather the number
 /// of spaces to add.
-fn pad_string(string: &str, padding: usize, alignment: Alignment) -> String {
+fn pad_string(string: &ColoredString, padding: usize, alignment: Alignment) -> String {
     if alignment == Alignment::Left {
         format!("{}{}", string, spaces(padding))
     }
